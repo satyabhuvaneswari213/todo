@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart To-Do App</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f6d365, #fda085, #f5576c, #5f9cff);
+  background-size: 300% 300%;
+  animation: gradientMove 10s ease infinite;
+  color: white;
+  height: 100vh;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+#splash {
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  background: inherit;
+  z-index: 10;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden { display: none; }
+
+.input-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(255,255,255,0.15);
+}
+
+input, select {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(45deg, #ff7eb3, #ff758c);
+  color: white;
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  padding: 15px;
+}
+
+.cat-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+}
+
+.all { background: #f0f0f0; }
+.study { background: #d0f0ff; }
+.shopping { background: #ffe4d6; }
+.today { background: #fff3b0; }
+.movie { background: #e4d9ff; }
+.birthday { background: #ffd6e0; }
+.health { background: #d6ffe0; }
+.work { background: #d6e4ff; }
+.personal { background: #ffeedd; }
+
+#taskList {
+  padding: 10px;
+}
+
+.task {
+  background: rgba(255,255,255,0.2);
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<div id="splash">My Smart To-Do App</div>
+
+<div id="main" class="container hidden">
+  <h1 style="text-align:center; margin-top:10px;">To-Do List</h1>
+
+  <div class="input-section">
+    <input type="text" id="taskInput" placeholder="Task">
+    <input type="date" id="taskDate">
+    <input type="time" id="taskTime">
+
+    <select id="priority">
+      <option value="">Priority</option>
+      <option>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+
+    <select id="category">
+      <option value="">Category</option>
+      <option>📚 Study</option>
+      <option>🛒 Shopping</option>
+      <option>📅 Today</option>
+      <option>🎬 Movie</option>
+      <option>🎂 Birthday</option>
+      <option>💪 Health</option>
+      <option>💼 Work</option>
+      <option>🏠 Personal</option>
+    </select>
+
+    <button onclick="addTask()">Add</button>
+    <button onclick="startVoice()">🎤 Voice</button>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div id="homePage">
+    <div class="categories">
+      <div class="cat-box study" onclick="openCategory('📚 Study')">📚 Study</div>
+      <div class="cat-box shopping" onclick="openCategory('🛒 Shopping')">🛒 Shopping</div>
+      <div class="cat-box today" onclick="openCategory('📅 Today')">📅 Today</div>
+      <div class="cat-box movie" onclick="openCategory('🎬 Movie')">🎬 Movie</div>
+      <div class="cat-box birthday" onclick="openCategory('🎂 Birthday')">🎂 Birthday</div>
+      <div class="cat-box health" onclick="openCategory('💪 Health')">💪 Health</div>
+      <div class="cat-box work" onclick="openCategory('💼 Work')">💼 Work</div>
+      <div class="cat-box personal" onclick="openCategory('🏠 Personal')">🏠 Personal</div>
+      <div class="cat-box all" onclick="openCategory('All')">🌈 All</div>
+    </div>
+  </div>
+
+  <!-- CATEGORY PAGE -->
+  <div id="categoryPage" class="hidden">
+    <button onclick="goBack()">⬅ Back</button>
+    <h2 id="catTitle"></h2>
+    <div id="taskList"></div>
+  </div>
+
+</div>
+
+<script>
+setTimeout(() => {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('main').classList.remove('hidden');
+}, 2000);
+
+let tasks = [];
+let currentCategory = 'All';
+
+function addTask() {
+  const text = document.getElementById('taskInput').value;
+  const date = document.getElementById('taskDate').value;
+  const time = document.getElementById('taskTime').value;
+  const category = document.getElementById('category').value;
+  const priority = document.getElementById('priority').value;
+
+  if (!text || !date || !time || !category || !priority) {
+    alert('Fill all fields');
+    return;
+  }
+
+  tasks.push({ text, date, time, category, priority });
+  renderTasks();
+
+  // clear fields after adding
+  document.getElementById('taskInput').value = '';
+  document.getElementById('taskDate').value = '';
+  document.getElementById('taskTime').value = '';
+  document.getElementById('category').value = '';
+  document.getElementById('priority').value = '';
+}
+
+function openCategory(cat) {
+  currentCategory = cat;
+  document.getElementById('homePage').classList.add('hidden');
+  document.getElementById('categoryPage').classList.remove('hidden');
+  document.getElementById('catTitle').innerText = cat;
+  renderTasks();
+}
+
+function goBack() {
+  document.getElementById('homePage').classList.remove('hidden');
+  document.getElementById('categoryPage').classList.add('hidden');
+}
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+
+  const filtered = currentCategory === 'All'
+    ? tasks
+    : tasks.filter(t => t.category === currentCategory);
+
+  filtered.forEach(task => {
+    list.innerHTML += `<div class="task">${task.text} | ${task.priority}</div>`;
+  });
+}
+function startVoice() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.start();
+
+  recognition.onresult = function(event) {
+    document.getElementById('taskInput').value = event.results[0][0].transcript;
+  };
+}
+
+</script>
+
+</body>
+</html>
